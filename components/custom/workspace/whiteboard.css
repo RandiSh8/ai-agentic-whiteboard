@@ -1,0 +1,14 @@
+.excalidraw .App-toolbar {
+    display: none !important;
+}
+
+/* Bring Excalidraw menu dropdown to the front when clicked */
+.excalidraw .layer-ui__wrapper {
+    z-index: 100 !important;
+}
+
+.excalidraw .Island,
+.excalidraw .dropdown-menu,
+.excalidraw .dropdown-menu-container {
+    z-index: 999999 !important;
+}
