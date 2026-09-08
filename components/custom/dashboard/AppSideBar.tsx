@@ -12,13 +12,21 @@ import {
 } from "@/components/ui/sidebar"
 import { Archive, LayoutGrid, Settings, Sparkle, Users } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link";
 import { usePathname } from "next/navigation"
 import { useUser } from "@clerk/nextjs";
 import CreateNewBoardDialog from "./CreateNewBoardDialog";
+import { useContext } from "react";
+import { UserDetailContext } from "@/context/UserDetailContext";
 
 export function AppSidebar() {
     const path=usePathname();
     const {user}=useUser();
+    const { userDetail } = useContext(UserDetailContext) || {};
+    const totalCredits = 3;
+    const credits = userDetail?.credits !== undefined ? userDetail.credits : 3;
+    const filesCreated = Math.max(0, Math.min(totalCredits, totalCredits - credits));
+    const progressPercent = (filesCreated / totalCredits) * 100;
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
@@ -34,18 +42,22 @@ export function AppSidebar() {
 
         <SidebarGroup>
             <SidebarGroupLabel>My Boards</SidebarGroupLabel>
-            <SidebarMenuButton className="p-5" isActive={path=="/dashboard"}>
-                <LayoutGrid/>
-                <span>All Files</span>
-            </SidebarMenuButton>
+            <Link href="/dashboard" className="block">
+              <SidebarMenuButton className="p-5 w-full cursor-pointer" isActive={path=="/dashboard"}>
+                  <LayoutGrid/>
+                  <span>All Files</span>
+              </SidebarMenuButton>
+            </Link>
             <SidebarMenuButton className="p-5 mt-2" isActive={path=="/shared-files"}>
                 <Users/>
                 <span>Shared</span>
             </SidebarMenuButton>
-            <SidebarMenuButton className="p-5 mt-2" isActive={path=="/archived"}>
-                <Archive/>
-                <span>Archived</span>
-            </SidebarMenuButton>
+            <Link href="/dashboard/archived" className="block">
+              <SidebarMenuButton className="p-5 mt-2 w-full cursor-pointer" isActive={path=="/archived" || path=="/dashboard/archived"}>
+                  <Archive/>
+                  <span>Archived</span>
+              </SidebarMenuButton>
+            </Link>
 
         </SidebarGroup>
         < SidebarGroup>
@@ -64,8 +76,11 @@ export function AppSidebar() {
       <SidebarFooter>
         <CreateNewBoardDialog/>
         <div className="p-4 my-3 border rounded-md">
-            <h2 className="text-sm flex justify-between mb-1">2 files created <span>total 3</span></h2>
-            <Progress value={66} className="h-2 mt-2"/>
+            <h2 className="text-sm flex justify-between mb-1">
+              {filesCreated} {filesCreated === 1 ? 'file' : 'files'} created 
+              <span>total {totalCredits}</span>
+            </h2>
+            <Progress value={progressPercent} className="h-2 mt-2"/>
         </div>
         <div className="flex items-center gap-2 p-4 border rounded-md">
             {user?.imageUrl && (

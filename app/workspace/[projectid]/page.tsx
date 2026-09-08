@@ -2,30 +2,39 @@
 import SmartDoc from "@/components/custom/workspace/SmartDoc";
 import Whiteboard from "@/components/custom/workspace/Whiteboard";
 import WorkspaceHeader from "@/components/custom/workspace/WorkspaceHeader";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
-import { normalizeAppState } from "@/utils/helper";
+import { generatePreviewBase64, normalizeAppState } from "@/utils/helper";
 import axios from "axios";
 import { useParams } from 'next/navigation';
+import { toast } from "@/components/ui/toast";
 
 function Workspace() {
   const [activeTab, setActiveTab] = useState("whiteboard");
   const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null);
   const [projectName, setProjectName] = useState<string>("");
   const [boardData, setBoardData] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
+  const isSceneLoadedRef = useRef(false);
 
   const params = useParams();
   // Folder is [projectid] (lowercase), so useParams gives { projectid: '...' }
   const projectId = (params?.projectid || params?.projectId) as string;
 
+  const handleApiReady = useCallback((newApi: ExcalidrawImperativeAPI) => {
+    setApi(newApi);
+  }, []);
+
   useEffect(() => {
     if (projectId) {
+      isSceneLoadedRef.current = false;
       GetWhiteboardData();
     }
   }, [projectId]);
 
   useEffect(() => {
-    if (boardData && api) {
+    if (boardData && api && !isSceneLoadedRef.current) {
+      isSceneLoadedRef.current = true;
       api.updateScene({
         elements: boardData.elements || [],
         appState: normalizeAppState(boardData.appState),
@@ -47,6 +56,40 @@ function Workspace() {
       }
     } catch (err) {
       console.warn("Could not load whiteboard data:", err);
+    }
+  };
+
+  const handleSaveCanvas = async () => {
+    if (!api || !projectId) return;
+    setSaving(true);
+    try {
+      const elements = api.getSceneElements();
+      const appState = api.getAppState();
+      const files = api.getFiles();
+
+      const previewBase64 = await generatePreviewBase64(api);
+
+      const updatedAppState = {
+        ...appState,
+        ...(previewBase64 ? { image: previewBase64 } : {}),
+      };
+
+      const result = await axios.post("/api/whiteboard", {
+        projectId,
+        elements,
+        appState: updatedAppState,
+        files,
+        image: previewBase64,
+      });
+
+      if (result.status === 200) {
+        toast.add({ title: "Canvas Saved", type: "success" });
+      }
+    } catch (err: any) {
+      console.error("Failed to save whiteboard:", err);
+      toast.add({ title: "Failed to save whiteboard", type: "error" });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -77,17 +120,16 @@ function Workspace() {
       <WorkspaceHeader 
         projectName={projectName}
         selectedTab={(value: string) => setActiveTab(value)}
-        onExport={()=>handleExportImage()}  
+        onExport={()=>handleExportImage()}
+        onSave={handleSaveCanvas}
+        saving={saving}
       />
 
-      {activeTab == "whiteboard" ? 
-      <Whiteboard 
-      onApiReady={(api)=>{
-        setApi(api);
-        
-      }}
-      /> : <SmartDoc/>
-      }
+      {activeTab == "whiteboard" ? (
+        <Whiteboard onApiReady={handleApiReady} />
+      ) : (
+        <SmartDoc />
+      )}
     </div>
   );
 }
