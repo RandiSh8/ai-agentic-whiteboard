@@ -34,6 +34,7 @@ import FloatingProperties from "./FloatingProperties";
 import { Button } from "@/components/ui/button";
 import AIFloatingSidebar from "./AIFloatingSidebar";
 import BottomToolbar from "./BottomToolbar";
+import { generatePreviewBase64 } from "@/utils/helper";
 
 const tools = [
   {
@@ -111,15 +112,20 @@ function Whiteboard({ onApiReady }: Props) {
   const [ShowAiSidebar, setShowAiSidebar] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
+  const onApiReadyRef = useRef(onApiReady);
+  useEffect(() => {
+    onApiReadyRef.current = onApiReady;
+  }, [onApiReady]);
+
   const handleExcalidrawRef = useCallback(
     (api: ExcalidrawImperativeAPI) => {
       if (api) {
         excalidrawAPIRef.current = api;
         setExcalidrawAPI((prev) => (prev === api ? prev : api));
-        onApiReady?.(api);
+        onApiReadyRef.current?.(api);
       }
     },
-    [onApiReady],
+    [],
   );
 
   /** Resolve up to 1 representative element from the current selection.
@@ -359,11 +365,19 @@ function Whiteboard({ onApiReady }: Props) {
   ) => {
     if (!projectId) return;
     try {
+      const api = excalidrawAPIRef.current;
+      const preview = api ? await generatePreviewBase64(api) : null;
+      const updatedAppState = {
+        ...appState,
+        ...(preview ? { image: preview } : {}),
+      };
+
       const result = await axios.post("/api/whiteboard", {
         elements: elements,
-        appState: appState,
+        appState: updatedAppState,
         files: files,
         projectId: projectId,
+        image: preview,
       });
 
       if (result.status === 200 && result.data) {

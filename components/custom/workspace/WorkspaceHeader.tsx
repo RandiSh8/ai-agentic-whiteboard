@@ -10,9 +10,11 @@ type Props={
   projectName?: string;
   selectedTab: any;
   onExport?: () => void;
+  onSave?: () => void;
+  saving?: boolean;
 }
 
-function WorkspaceHeader({ projectName, selectedTab, onExport }: Props) {
+function WorkspaceHeader({ projectName, selectedTab, onExport, onSave, saving }: Props) {
   return (
     <div className='p-3 border-b flex justify-between items-center'>
         <div className='flex gap-2 items-center'>
@@ -35,9 +37,12 @@ function WorkspaceHeader({ projectName, selectedTab, onExport }: Props) {
         </div>
         {/* Extra Button */}
         <div className='flex gap-2'>
-          <Button><Save/>Save</Button>
-          <Button variant={'outline'}><Share/>Share</Button>
-          <Button onClick={onExport}><DownloadIcon/>Export</Button>
+          <Button onClick={onSave} disabled={saving} className="flex items-center gap-2">
+            <Save className={`w-4 h-4 ${saving ? 'animate-spin' : ''}`} />
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+          <Button variant={'outline'}><Share className="w-4 h-4 mr-1" />Share</Button>
+          <Button onClick={onExport}><DownloadIcon className="w-4 h-4 mr-1" />Export</Button>
         </div>
     </div>
   )
