@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useEffect, useRef, useState } from "react"
 import {
@@ -21,7 +21,9 @@ import {
   Minus,
   Palette,
   Pencil,
+  Smile,
   Square,
+  StickyNote,
   Trash2,
   Type,
   Unlock,
@@ -92,6 +94,25 @@ function FloatingProperties({
     setIsDragging(false)
   }, [selectedElement?.id])
 
+  useEffect(() => {
+    if (!isDragging) return
+    const handlePointerMove = (e: PointerEvent) => {
+      setDragOffset({
+        x: dragStart.current.offsetX + (e.clientX - dragStart.current.mouseX),
+        y: dragStart.current.offsetY + (e.clientY - dragStart.current.mouseY),
+      })
+    }
+    const handlePointerUp = () => {
+      setIsDragging(false)
+    }
+    window.addEventListener("pointermove", handlePointerMove)
+    window.addEventListener("pointerup", handlePointerUp)
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove)
+      window.removeEventListener("pointerup", handlePointerUp)
+    }
+  }, [isDragging])
+
   if (!selectedElement) {
     return null
   }
@@ -112,12 +133,27 @@ function FloatingProperties({
   const isFreeDraw = type === "freedraw"
   const isImage = type === "image"
 
-  const handleDragStart = (
-    e: React.PointerEvent<HTMLButtonElement>
-  ) => {
+  const isGroupNote =
+    Boolean(selectedElement._isGroupProxy) ||
+    Boolean(selectedElement.groupIds?.length) ||
+    Boolean(selectedElement.customType) ||
+    Boolean(selectedElement.isTaskCard)
+  const isEmojiOrIcon =
+    Boolean(selectedElement.isEmoji) ||
+    Boolean(selectedElement.isIcon) ||
+    selectedElement.customType === "emoji" ||
+    selectedElement.customType === "icon" ||
+    (isText &&
+      selectedElement.text &&
+      /^[\p{Extended_Pictographic}\u200d\uFE0F\u200e\u200f\s]+$/u.test(
+        selectedElement.text.trim()
+      ))
+
+  const isMinimalToolbar = isGroupNote || isEmojiOrIcon || isImage
+
+  const handleDragStart = (e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    e.currentTarget.setPointerCapture(e.pointerId)
     setIsDragging(true)
     dragStart.current = {
       mouseX: e.clientX,
@@ -127,27 +163,15 @@ function FloatingProperties({
     }
   }
 
-  const handleDragMove = (
-    e: React.PointerEvent<HTMLButtonElement>
-  ) => {
-    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
-
-    setDragOffset({
-      x: dragStart.current.offsetX + (e.clientX - dragStart.current.mouseX),
-      y: dragStart.current.offsetY + (e.clientY - dragStart.current.mouseY),
-    })
-  }
-
-  const handleDragEnd = (
-    e: React.PointerEvent<HTMLButtonElement>
-  ) => {
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId)
-    }
-    setIsDragging(false)
-  }
-
   const ElementIcon = () => {
+    if (isGroupNote) {
+      return <StickyNote size={18} />
+    }
+
+    if (isEmojiOrIcon) {
+      return <Smile size={18} />
+    }
+
     if (type === "rectangle") {
       return <Square size={18} />
     }
@@ -184,6 +208,18 @@ function FloatingProperties({
   }
 
   const getMoreTitle = () => {
+    if (isGroupNote) {
+      return "Note options"
+    }
+
+    if (isEmojiOrIcon) {
+      return "Emoji options"
+    }
+
+    if (isImage) {
+      return "Image options"
+    }
+
     if (isText) {
       return "Text options"
     }
@@ -198,10 +234,6 @@ function FloatingProperties({
 
     if (isFreeDraw) {
       return "Drawing options"
-    }
-
-    if (isImage) {
-      return "Image options"
     }
 
     return "More options"
@@ -236,9 +268,6 @@ function FloatingProperties({
       <button
         type="button"
         onPointerDown={handleDragStart}
-        onPointerMove={handleDragMove}
-        onPointerUp={handleDragEnd}
-        onPointerCancel={handleDragEnd}
         className="
           flex
           h-9
@@ -263,6 +292,108 @@ function FloatingProperties({
       <ToolbarButton title="Element" active>
         <ElementIcon />
       </ToolbarButton>
+
+      {/* Minimal clean toolbar for Emojis, Icons, Notes, and Images */}
+      {isMinimalToolbar ? (
+        <>
+          <ToolbarButton title="Duplicate" onClick={onDuplicate}>
+            <Copy size={18} />
+          </ToolbarButton>
+
+          <ToolbarButton
+            title={selectedElement.isLocked ? "Unlock" : "Lock"}
+            onClick={onLock}
+          >
+            {selectedElement.isLocked ? (
+              <Unlock size={18} />
+            ) : (
+              <Lock size={18} />
+            )}
+          </ToolbarButton>
+
+          <ToolbarButton
+            title="Delete"
+            onClick={onDelete}
+            className="text-red-500 hover:bg-red-50 hover:text-red-600"
+          >
+            <Trash2 size={18} />
+          </ToolbarButton>
+
+          <Popover open={moreOpen} onOpenChange={setMoreOpen}>
+            <PopoverTrigger
+              render={
+                <ToolbarButton title="Options">
+                  <Ellipsis size={18} />
+                </ToolbarButton>
+              }
+            />
+            <PopoverContent
+              side="bottom"
+              align="center"
+              sideOffset={8}
+              className="z-[9999] w-[260px] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <span className="font-semibold text-sm text-slate-800">
+                  {getMoreTitle()}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen(false)}
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+
+              {/* Action buttons: Bring front / Send back */}
+              <div className="mt-3.5 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onBringToFront?.()
+                  }}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-100 active:bg-slate-200"
+                >
+                  <ArrowUpToLine size={15} />
+                  <span>Bring front</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSendToBack?.()
+                  }}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-100 active:bg-slate-200"
+                >
+                  <ArrowDownToLine size={15} />
+                  <span>Send back</span>
+                </button>
+              </div>
+
+              {/* Opacity Slider */}
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-2">
+                  <span>Opacity</span>
+                  <span className="text-slate-500 font-mono">
+                    {selectedElement.opacity ?? 100}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  value={selectedElement.opacity ?? 100}
+                  onChange={(e) =>
+                    onPropertyChange?.("opacity", Number(e.target.value))
+                  }
+                  className="w-full h-1.5 rounded-lg appearance-none bg-slate-200 accent-blue-600 cursor-pointer"
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
+        </>
+      ) : (
+        <>
 
       {/* Stroke / text color */}
       {!isImage && (
@@ -727,6 +858,8 @@ function FloatingProperties({
           )}
         </PopoverContent>
       </Popover>
+      </>
+      )}
     </div>
   )
 }

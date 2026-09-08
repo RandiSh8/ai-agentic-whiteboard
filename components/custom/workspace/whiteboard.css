@@ -6,7 +6,9 @@
 .excalidraw .main-menu-trigger,
 .excalidraw .sidebar-trigger,
 .excalidraw [aria-label="Main menu"],
-.excalidraw [aria-label="Library"] {
+.excalidraw [aria-label="Library"],
+.excalidraw [aria-label="Help"],
+.excalidraw .help-icon {
     display: none !important;
 }
 
@@ -29,4 +31,365 @@
 .excalidraw .App-bottom-bar {
     z-index: 10 !important;
     position: relative;
+}
+
+/* ─── BOTTOM TOOLBAR ROOT ─────────────────────────────────── */
+.bottom-toolbar-root {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ─── TOOLBAR PILL ──────────────────────────────────────────── */
+.bottom-toolbar-pill {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 6px 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  backdrop-filter: blur(12px);
+}
+
+.btb-divider {
+  width: 1px;
+  height: 22px;
+  background: #e5e7eb;
+  margin: 0 4px;
+}
+
+.btb-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.btb-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+.btb-btn--active {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* AI Helper button — blue gradient */
+.btb-btn--ai {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-weight: 600;
+}
+.btb-btn--ai:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  color: #ffffff;
+}
+.btb-btn--ai-active {
+  background: linear-gradient(135deg, #1e40af, #1e3a8a);
+  color: #ffffff;
+}
+
+/* ─── FLOATING PANELS ───────────────────────────────────────── */
+.bottom-toolbar-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.06);
+  width: 320px;
+  overflow: hidden;
+  animation: panelSlideUp 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes panelSlideUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+.panel-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0 0;
+}
+.panel-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.panel-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* ─── NOTES PANEL ───────────────────────────────────────────── */
+.note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+}
+
+.note-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.note-item:hover {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+}
+
+.note-preview {
+  width: 64px;
+  height: 50px;
+  border-radius: 8px;
+  border: 1.5px solid;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 6px 8px;
+  gap: 5px;
+}
+.note-badge {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.note-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+.note-line {
+  height: 3px;
+  border-radius: 2px;
+}
+.note-line.long  { width: 100%; }
+.note-line.short { width: 65%; }
+
+.note-info { flex: 1; }
+.note-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+.note-desc {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 1px 0 0;
+}
+.note-chevron {
+  color: #d1d5db;
+  flex-shrink: 0;
+}
+
+/* ─── EMOJI PANEL ───────────────────────────────────────────── */
+.emoji-panel {
+  width: 340px;
+}
+
+.emoji-tabs {
+  display: flex;
+  gap: 0;
+  padding: 10px 14px 0;
+}
+.emoji-tab {
+  flex: 1;
+  padding: 7px 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.emoji-tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  font-weight: 600;
+}
+
+.emoji-search-wrap {
+  position: relative;
+  margin: 10px 14px 0;
+}
+.emoji-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+.emoji-search {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #111827;
+  background: #f9fafb;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.emoji-search:focus {
+  border-color: #7c3aed;
+  background: #ffffff;
+}
+
+.emoji-cat-row {
+  display: flex;
+  gap: 2px;
+  padding: 10px 14px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.emoji-cat-row::-webkit-scrollbar { display: none; }
+.emoji-cat-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+}
+.emoji-cat-btn:hover,
+.emoji-cat-btn.active {
+  background: #f3f4f6;
+}
+
+.emoji-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 16px 4px;
+  margin: 0;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  padding: 4px 10px 14px;
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+.emoji-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, transform 0.1s;
+}
+.emoji-btn:hover {
+  background: #f3f4f6;
+  transform: scale(1.18);
+}
+
+/* ─── ICONS GRID ────────────────────────────────────────────── */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 12px 14px 16px;
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+.icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px 8px;
+  border: 1.5px solid #f3f4f6;
+  border-radius: 12px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.icon-item:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.1);
+}
+.icon-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+.icon-label {
+  font-size: 9px;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

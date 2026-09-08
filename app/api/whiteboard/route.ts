@@ -7,10 +7,7 @@ export async function POST(req: NextRequest) {
     try {
         const { projectId, elements, appState, files } = await req.json();
         const user = await currentUser();
-
-        if (!user) {
-            return NextResponse.json({ error: "Unauthorized User" }, { status: 401 });
-        }
+        const email = user?.primaryEmailAddress?.emailAddress || "guest@example.com";
 
         if (!projectId) {
             return NextResponse.json({ error: "ProjectId is required" }, { status: 400 });
@@ -22,7 +19,7 @@ export async function POST(req: NextRequest) {
             await db.insert(projects).values({
                 projectId: projectId,
                 projectName: "Untitled Board",
-                userEmail: user.primaryEmailAddress?.emailAddress || ""
+                userEmail: email
             });
         }
 
