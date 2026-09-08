@@ -1,4 +1,12 @@
-.excalidraw .App-toolbar {
+/* Hide Excalidraw default top toolbar & top menu bar (hamburger menu, top bar, library button) */
+.excalidraw .App-toolbar,
+.excalidraw .App-top-bar,
+.excalidraw .App-menu__top,
+.excalidraw .App-menu__left,
+.excalidraw .main-menu-trigger,
+.excalidraw .sidebar-trigger,
+.excalidraw [aria-label="Main menu"],
+.excalidraw [aria-label="Library"] {
     display: none !important;
 }
 
@@ -11,4 +19,14 @@
 .excalidraw .dropdown-menu,
 .excalidraw .dropdown-menu-container {
     z-index: 999999 !important;
+}
+
+/* Push Excalidraw's Library button and footer panels behind our AI sidebar */
+.excalidraw .library-button,
+.excalidraw [aria-label="Library"],
+.excalidraw .App-toolbar__extra-tools-trigger,
+.excalidraw .footer-center,
+.excalidraw .App-bottom-bar {
+    z-index: 10 !important;
+    position: relative;
 }

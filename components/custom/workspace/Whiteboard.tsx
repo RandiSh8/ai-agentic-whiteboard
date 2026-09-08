@@ -19,6 +19,7 @@ import {
   Pencil,
   Square,
   Type,
+  Sparkles,
 } from "lucide-react";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
@@ -28,6 +29,8 @@ const Excalidraw = dynamic(
 );
 
 import FloatingProperties from "./FloatingProperties";
+import { Button } from "@/components/ui/button";
+import AIFloatingSidebar from "./AIFloatingSidebar";
 
 const tools = [
   {
@@ -86,8 +89,11 @@ const tools = [
     color: "text-rose-500",
   },
 ];
+type Props={
+  onApiReady:(api:ExcalidrawImperativeAPI)=>void
+}
 
-function Whiteboard() {
+function Whiteboard({onApiReady}:Props) {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
   const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
@@ -97,6 +103,7 @@ function Whiteboard() {
   const [activeTool, setActiveTool] = useState("selection");
   const [selectedElement,setSelectedElement]=useState<any>(null);
   const [canvasState,setCanvasState]=useState<any>(null);
+  const[ShowAiSidebar,setShowAiSidebar]=useState(false);
 
   const handleCanvasChange = (
     elements: readonly any[],
@@ -224,12 +231,21 @@ function Whiteboard() {
   const handleDuplicate = () => {
     if (!excalidrawAPI || !selectedElement) return;
     const elements = excalidrawAPI.getSceneElements();
-    const newElement = {
+    const newElement: any = {
       ...selectedElement,
       id: `${selectedElement.id}_copy_${Date.now()}`,
       x: selectedElement.x + 20,
       y: selectedElement.y + 20,
     };
+
+    // If linear element (arrow/line), deep clone points and clear bindings to prevent non-normalized state
+    if (Array.isArray(selectedElement.points)) {
+      newElement.points = selectedElement.points.map((p: any) => [...p]);
+      delete newElement.startBinding;
+      delete newElement.endBinding;
+    }
+    delete newElement.boundElements;
+
     excalidrawAPI.updateScene({ elements: [...elements, newElement] });
   };
 
@@ -265,7 +281,7 @@ function Whiteboard() {
         //@ts-ignore
         excalidrawAPI={(api: ExcalidrawImperativeAPI) => {
           excalidrawAPIRef.current = api;
-          setExcalidrawAPI(api);
+          setExcalidrawAPI(api);onApiReady(api)
         }}
         onChange={handleCanvasChange}
       />
@@ -293,6 +309,12 @@ function Whiteboard() {
           );
         })}
       </div>
+      <div className="absolute right-15  bottom-2 z-50">
+        <Button size={"lg"} onClick={()=>setShowAiSidebar(!ShowAiSidebar)}>
+          <Sparkles/>AI
+        </Button>
+      </div>
+      {ShowAiSidebar && <AIFloatingSidebar onClose={() => setShowAiSidebar(false)} excalidrawAPI={excalidrawAPI}/>}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+"use client"
 import React from 'react'
 import { SidebarTrigger } from '../ui/sidebar'
 import { UserButton } from '@clerk/nextjs'
